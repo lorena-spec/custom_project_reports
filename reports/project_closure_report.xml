@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+            id="action_report_project_closure"
+            model="project.project"
+            string="Reporte de Cierre de Proyecto"
+            report_type="qweb-pdf"
+            name="custom_project_reports.report_project_closure"
+            file="custom_project_reports.report_project_closure"
+            print_report_name="'Cierre_Proyecto_%s' % (object.name or '').replace('/', '-')"
+        />
+
+        <template id="report_project_closure">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="project">
+                    <div class="page">
+                        <div style="border-bottom: 3px solid #1f497d; padding-bottom: 20px; margin-bottom: 30px;">
+                            <table style="width: 100%;">
+                                <tr>
+                                    <td style="width: 60%;">
+                                        <h1 style="color: #1f497d; margin: 0;">REPORTE DE CIERRE DE PROYECTO</h1>
+                                        <p style="font-size: 14px; color: #666; margin: 5px 0;">Documento de Cierre y Análisis de Desempeño</p>
+                                    </td>
+                                    <td style="width: 40%; text-align: right;">
+                                        <p style="font-size: 12px; margin: 5px 0;"><strong>Fecha Generación:</strong></p>
+                                        <p style="font-size: 12px; margin: 5px 0;" t-out="context_timestamp(datetime.now()).strftime('%d/%m/%Y')"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h2 style="color: #1f497d; border-bottom: 2px solid #1f497d; padding-bottom: 10px;">INFORMACIÓN GENERAL</h2>
+                            <table style="width: 100%; margin-top: 15px; border-collapse: collapse;">
+                                <tr style="background-color: #f5f5f5;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Código</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;" t-out="project.name"/>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Cliente</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;" t-out="project.partner_id.name or 'N/A'"/>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Gerente</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;" t-out="project.user_id.name or 'N/A'"/>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Estado</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span style="background-color: #d4edda; padding: 4px 8px; border-radius: 3px;">CERRADO</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h2 style="color: #1f497d; border-bottom: 2px solid #1f497d; padding-bottom: 10px;">CRONOGRAMA</h2>
+                            <table style="width: 100%; margin-top: 15px; border-collapse: collapse;">
+                                <tr style="background-color: #f5f5f5;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Fecha Inicio</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;" t-out="project.date_start.strftime('%d/%m/%Y') if project.date_start else 'N/A'"/>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Fecha Fin</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;" t-out="project.date.strftime('%d/%m/%Y') if project.date else 'N/A'"/>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Fecha Cierre</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;" t-out="project.closure_date.strftime('%d/%m/%Y') if project.closure_date else 'PENDIENTE'"/>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Tiempo Asignado</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;" t-out="str(project.planned_hours or 'N/A') + ' h'"/>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h2 style="color: #1f497d; border-bottom: 2px solid #1f497d; padding-bottom: 10px;">RESUMEN FINANCIERO</h2>
+                            <table style="width: 100%; margin-top: 15px; border-collapse: collapse;">
+                                <tr style="background-color: #1f497d; color: white;">
+                                    <th style="padding: 10px; border: 1px solid #ddd;">Concepto</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Monto (USD)</th>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Valor Base</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">
+                                        $<t t-out="'{:,.2f}'.format(project.analytic_account_id.amount_max or 0)"/>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #f9f9f9;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>IVA (12%)</strong></td>
+                                    <t t-set="iva" t-value="(project.analytic_account_id.amount_max or 0) * 0.12"/>
+                                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">
+                                        $<t t-out="'{:,.2f}'.format(iva)"/>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #e8f5e9;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Total Facturar</strong></td>
+                                    <t t-set="total" t-value="(project.analytic_account_id.amount_max or 0) * 1.12"/>
+                                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">
+                                        $<t t-out="'{:,.2f}'.format(total)"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h2 style="color: #1f497d; border-bottom: 2px solid #1f497d; padding-bottom: 10px;">ANÁLISIS DE COSTOS</h2>
+                            <table style="width: 100%; margin-top: 15px; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background-color: #1f497d; color: white;">
+                                        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Concepto</th>
+                                        <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Planificado</th>
+                                        <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Real</th>
+                                        <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Desviación</th>
+                                        <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">% Var</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background-color: #1f497d; color: white; font-weight: bold;">
+                                        <td style="padding: 10px; border: 1px solid #ddd;">TOTAL</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">
+                                            $<t t-out="'{:,.2f}'.format(project.total_cost_planned)"/>
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">
+                                            $<t t-out="'{:,.2f}'.format(project.total_cost_real)"/>
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">
+                                            $<t t-out="'{:,.2f}'.format(project.cost_variance)"/>
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                            <t t-out="'{:.1f}%'.format(project.cost_variance_pct)"/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h2 style="color: #1f497d; border-bottom: 2px solid #1f497d; padding-bottom: 10px;">KPIs</h2>
+                            <table style="width: 100%;">
+                                <tr>
+                                    <td style="width: 33%; padding: 15px; border: 2px solid #1f497d; text-align: center;">
+                                        <p style="color: #666; margin: 0;">% GASTOS REALES</p>
+                                        <t t-set="pct" t-value="(project.total_cost_real / project.total_cost_planned * 100) if project.total_cost_planned > 0 else 0"/>
+                                        <p style="color: #1f497d; font-size: 24px; margin: 10px 0; font-weight: bold;">
+                                            <t t-out="'{:.1f}%'.format(pct)"/>
+                                        </p>
+                                    </td>
+                                    <td style="width: 33%; padding: 15px; border: 2px solid #1f497d; text-align: center;">
+                                        <p style="color: #666; margin: 0;">VARIANZA</p>
+                                        <p style="color: #1f497d; font-size: 24px; margin: 10px 0; font-weight: bold;">
+                                            <t t-out="'{:.1f}%'.format(project.cost_variance_pct)"/>
+                                        </p>
+                                    </td>
+                                    <td style="width: 33%; padding: 15px; border: 2px solid #1f497d; text-align: center;">
+                                        <p style="color: #666; margin: 0;">DIFERENCIA</p>
+                                        <t t-if="project.cost_variance < 0">
+                                            <p style="color: #28a745; font-size: 18px; margin: 10px 0; font-weight: bold;">
+                                                AHORRO $<t t-out="'{:,.2f}'.format(abs(project.cost_variance))"/>
+                                            </p>
+                                        </t>
+                                        <t t-else="">
+                                            <p style="color: #dc3545; font-size: 18px; margin: 10px 0; font-weight: bold;">
+                                                EXCESO $<t t-out="'{:,.2f}'.format(project.cost_variance)"/>
+                                            </p>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h2 style="color: #1f497d; border-bottom: 2px solid #1f497d; padding-bottom: 10px;">OBSERVACIONES</h2>
+                            <div style="background-color: #f5f5f5; padding: 15px; border: 1px solid #ddd; min-height: 60px;">
+                                <t t-if="project.closure_notes">
+                                    <p t-out="project.closure_notes"/>
+                                </t>
+                                <t t-elif="project.description">
+                                    <p t-out="project.description"/>
+                                </t>
+                                <t t-else="">
+                                    <p style="color: #999;"><em>Sin observaciones</em></p>
+                                </t>
+                            </div>
+                        </div>
+
+                        <div style="border-top: 2px solid #1f497d; padding-top: 20px; margin-top: 50px;">
+                            <p style="font-size: 11px; color: #666;">
+                                Documento generado automáticamente - <t t-out="context_timestamp(datetime.now()).strftime('%d/%m/%Y %H:%M')"/>
+                            </p>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>
